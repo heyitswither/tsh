@@ -174,6 +174,7 @@ int tsh_launch(char **args)
         do {
             wpid = waitpid(pid, &status, WUNTRACED);
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+            printf("[%d]\n", wpid);
     }
 
     return 1;
