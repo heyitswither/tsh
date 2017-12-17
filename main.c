@@ -146,8 +146,8 @@ int tsh_cd(char **args)
 }
 
 char* tsh_get_pwd(void) {
-    char* cwd = malloc(TSH_RL_BUFSIZE);
-    if (getcwd(cwd, sizeof(cwd)) == NULL) {
+    char* cwd = malloc(sizeof(char)*TSH_RL_BUFSIZE);
+    if (getcwd(cwd, sizeof(char)*TSH_RL_BUFSIZE) == NULL) {
         perror("tsh");
         return "";
     }
