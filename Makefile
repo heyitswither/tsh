@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -Werror -Wno-unused-parameter -O0 -g -std=c11
+CFLAGS=-Wall -Wextra -Werror -Wno-unused-parameter -O0 -g -std=gnu99
 PREFIX="/usr/local"
 
 notarget: shell
