@@ -22,47 +22,49 @@ int tsh_num_builtins(void);
 char* tsh_get_home(void);
 char* tsh_get_pwd(void);
 char* tsh_get_user(void);
+int tsh_get_euid(void);
+char* tsh_get_hostname(void);
 void tsh_clean_exit(void);
 
 /* builtin shell commands */
 int tsh_cd(char** args);
 int tsh_help(char** args);
 int tsh_exit(char** args);
-int tsh_pwd(char** args);
 int tsh_home(char** args);
 int tsh_true(char** args);
 int tsh_false(char** args);
 int tsh_exec(char** args);
 int tsh_status(char** args);
 int tsh_user(char** args);
+int tsh_euid(char** args);
 
 char* builtin_str[] = {
-  "cd", "help", "exit", "pwd", "home", "true", "false", "exec", "status", "user"
+  "cd", "help", "exit", "home", "true", "false", "exec", "status", "user", "euid"
 };
 char* builtin_desc[] = {
   "changes the current directory",
   "shows this message",
   "exits the shell",
-  "prints the current directory",
   "prints the path to home",
   "returns true",
   "returns false",
   "replaces the current process",
   "prints or changes the status",
-  "prints the current logged in user"
+  "prints the current logged in user",
+  "prints the EUID of the current user"
 };
 
 int (*builtin_func[]) (char**) = {
   &tsh_cd,
   &tsh_help,
   &tsh_exit,
-  &tsh_pwd,
   &tsh_home,
   &tsh_true,
   &tsh_false,
   &tsh_exec,
   &tsh_status,
-  &tsh_user
+  &tsh_user,
+  &tsh_euid
 };
 
 int tsh_num_builtins(void) {
@@ -104,6 +106,13 @@ int tsh_execute(char **args)
   return tsh_launch(args);
 }
 
+int tsh_euid(char** args)
+{
+    int euid = tsh_get_euid();
+    printf("%d\n", euid);
+    return 0;
+}
+
 int tsh_user(char** args)
 {
     char* user = malloc(sizeof(char)*TSH_RL_BUFSIZE);
@@ -123,14 +132,6 @@ int tsh_status(char** args)
         printf("Status set to %d\n", new_code);
         return new_code;
     }
-    return 0;
-}
-
-int tsh_pwd(char** args)
-{
-    char* cwd = malloc(TSH_RL_BUFSIZE);
-    cwd = tsh_get_pwd();
-    printf("%s\n", cwd);
     return 0;
 }
 
@@ -190,6 +191,18 @@ int tsh_cd(char** args)
     }
   }
   return 0;
+}
+
+char* tsh_get_hostname(void) {
+    char* hostname = malloc(sizeof(char)*TSH_RL_BUFSIZE);
+    gethostname(hostname, sizeof(char)*TSH_RL_BUFSIZE);
+    return hostname;
+}
+
+int tsh_get_euid(void) {
+    int euid = 0;
+    euid = geteuid();
+    return euid;
 }
 
 char* tsh_get_pwd(void) {
