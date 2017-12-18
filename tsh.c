@@ -46,7 +46,10 @@ int (*builtin_func[]) (char **) = {
   &tsh_help,
   &tsh_exit,
   &tsh_pwd,
-  &tsh_home
+  &tsh_home,
+  &tsh_true,
+  &tsh_false,
+  &tsh_exec
 };
 
 int tsh_num_builtins(void) {
@@ -114,8 +117,10 @@ int tsh_false(char** args)
 
 int tsh_exec(char** args)
 {
-    execvp(args[0], args);
-    return 1;
+    if (execvp(args[0], args) == -1) {
+        perror("tsh");
+    }    
+    return EXIT_FAILURE;
 }
 
 int tsh_help(char **args)
@@ -156,7 +161,7 @@ char* tsh_get_pwd(void) {
 
 int tsh_launch(char **args)
 {
-    pid_t pid, wpid;
+    pid_t pid;
     int status;
 
     pid = fork();
@@ -172,9 +177,8 @@ int tsh_launch(char **args)
     } else {
         // Parent process
         do {
-            wpid = waitpid(pid, &status, WUNTRACED);
+            waitpid(pid, &status, WUNTRACED);
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
-            printf("[%d]\n", wpid);
     }
 
     return 1;

@@ -1,0 +1,1 @@
+Run `sudo make install` to install into `/usr/local/bin`, `sudo make install PREFIX="YOUR_PREFIX"` to install elsewhere.
