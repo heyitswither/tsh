@@ -1,2 +1,4 @@
 /tsh
 /*.dSYM/
+*.o
+*.swp

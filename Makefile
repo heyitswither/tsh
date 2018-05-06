@@ -2,10 +2,13 @@ CC=gcc
 CFLAGS=-Wall -Wextra -Werror -Wno-unused-parameter -O0 -g -std=gnu99
 PREFIX="/usr/local"
 
-notarget: shell
+notarget: tsh
 
-shell: tsh
+tsh: libtsh.o builtins.o
 
-install: shell
-	mkdir -p $(PREFIX)/bin
-	install -s tsh $(PREFIX)/bin
+install: tsh
+	$(MKDIR) -p $(PREFIX)/bin
+	$(INSTALL) -s tsh $(PREFIX)/bin
+
+clean:
+	$(RM) *.o tsh
