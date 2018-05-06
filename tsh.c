@@ -10,6 +10,9 @@
 #define TSH_RL_BUFSIZE 1024
 #define TSH_TOK_BUFSIZE 64
 #define TSH_TOK_DELIM " \t\r\n\a"
+// user hostname directory $/#
+//#define TSH_PROMPT "%s@%s:%s%s "
+#define TSH_PROMPT "[%s@%s %s]%s "
 
 int tsh_status_code = 0;
 
@@ -25,6 +28,7 @@ char* tsh_get_user(void);
 int tsh_get_euid(void);
 char* tsh_get_hostname(void);
 void tsh_clean_exit(void);
+char* tsh_get_basename(char* path);
 
 /* builtin shell commands */
 int tsh_cd(char** args);
@@ -37,9 +41,10 @@ int tsh_exec(char** args);
 int tsh_status(char** args);
 int tsh_user(char** args);
 int tsh_euid(char** args);
+int tsh_basename(char** args);
 
 char* builtin_str[] = {
-  "cd", "help", "exit", "home", "true", "false", "exec", "status", "user", "euid"
+  "cd", "help", "exit", "home", "true", "false", "exec", "status", "user", "euid", "basename"
 };
 char* builtin_desc[] = {
   "changes the current directory",
@@ -51,7 +56,8 @@ char* builtin_desc[] = {
   "replaces the current process",
   "prints or changes the status",
   "prints the current logged in user",
-  "prints the EUID of the current user"
+  "prints the EUID of the current user",
+  "prints path with any leading directory components removed"
 };
 
 int (*builtin_func[]) (char**) = {
@@ -64,7 +70,8 @@ int (*builtin_func[]) (char**) = {
   &tsh_exec,
   &tsh_status,
   &tsh_user,
-  &tsh_euid
+  &tsh_euid,
+  &tsh_basename
 };
 
 int tsh_num_builtins(void) {
@@ -166,6 +173,16 @@ int tsh_exec(char** args)
     return 1;
 }
 
+int tsh_basename(char** args)
+{
+    int i = 1;
+    while (args[i] != NULL) {
+        printf("%s\n", tsh_get_basename(args[i]));
+        i++;
+    }
+    return 0;
+}
+
 int tsh_help(char** args)
 {
   int i;
@@ -184,7 +201,9 @@ int tsh_help(char** args)
 int tsh_cd(char** args)
 {
   if (args[1] == NULL) {
-    fprintf(stderr, "tsh: expected argument to \"cd\"\n");
+    if (chdir(tsh_get_home()) != 0) {
+      perror("tsh");
+    }
   } else {
     if (chdir(args[1]) != 0) {
       perror("tsh");
@@ -204,6 +223,11 @@ char* tsh_get_hostname(void) {
     char* hostname = malloc(sizeof(char)*TSH_RL_BUFSIZE);
     gethostname(hostname, sizeof(char)*TSH_RL_BUFSIZE);
     return hostname;
+}
+
+char* tsh_get_basename(char* path) {
+    char* base = strrchr(path, '/');
+    return base ? base+1 : path;
 }
 
 int tsh_get_euid(void) {
@@ -368,12 +392,8 @@ char *str_replace(char *orig, char *rep, char *with) {
 int tsh_loop(void) {
     char* line;
     char** args;
-    char* pwd = NULL;
-    char* tmp = NULL;
     do {
-        tmp = tsh_get_pwd();
-        pwd = str_replace(tmp, tsh_get_home(), "~");
-        printf("%s@%s:%s%s ", tsh_get_user(), tsh_get_hostname(), pwd, tsh_get_euid() == 0 ? "#" : "$");
+        printf(TSH_PROMPT, tsh_get_user(), tsh_get_hostname(), tsh_get_basename(tsh_get_pwd()), (tsh_get_euid() == 0 ? "#" : "$"));
         line = tsh_read_line();
         args = tsh_split_line(line);
         tsh_status_code = tsh_execute(args);
